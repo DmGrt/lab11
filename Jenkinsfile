@@ -1,19 +1,33 @@
 pipeline {
-    agent {
-        docker {
-            image '3.6.3-jdk-8'
-            args '-p 3000:3000 -p 5000:5000'
-        }
-    }
-    environment {
-        CI = 'true'
-    }
+     agent any
+
     stages {
-        stage('Build') {
+
+         stage('build Dockerfile') {
+
             steps {
-            sh 'mvn clean install'
-            sh 'exec:java -Dexec.mainClass=kpi.acts.appz.bot.hellobot.HelloWorldBot -Dexec.args="\'1628437518:AAHkDppuffbvv3g9ATXSlXa4N83iD-xBSA0\' \'laberman_bot\'"'
-           }
-        }
+                sh '''echo "FROM maven:3-alpine
+                          RUN apk add --update docker openrc
+                          RUN rc-update add docker boot" >/var/lib/jenkins/workspace/Dockerfile'''
+
+            }
+         }
+
+         stage('run Dockerfile') {
+             agent{
+                 dockerfile {
+                            filename '/var/lib/jenkins/workspace/Dockerfile'
+                            args '--user root -v $HOME/.m2:/root/.m2  -v /var/run/docker.sock:/var/run/docker.sock'
+                        }
+             }
+
+             steps {
+                 sh 'docker version'
+                 sh 'mvn -version'
+                 sh 'java -version'
+             }
+
+         }
+
     }
 }
