@@ -1,6 +1,6 @@
 node{
     stage('Mvn clean install'){
-        sh 'mvn clean install'
+        mvn clean install
         }
 
 }
