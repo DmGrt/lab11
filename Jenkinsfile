@@ -1,33 +1,15 @@
 pipeline {
-     agent any
-
+    agent {
+        docker {
+            image 'maven:3-alpine'
+            args '-v /root/.m2:/root/.m2'
+        }
+    }
     stages {
-
-         stage('build Dockerfile') {
-
+        stage('Build') {
             steps {
-                sh '''echo "FROM maven:3-alpine
-                          RUN apk add --update docker openrc
-                          RUN rc-update add docker boot" >/var/jenkins_home/workspace/Dockerfile'''
-
+                sh 'mvn -B -DskipTests clean package'
             }
-         }
-
-         stage('run Dockerfile') {
-             agent{
-                 dockerfile {
-                            filename '/var/jenkins_home/workspace/Dockerfile'
-                            args '--user root -v $HOME/.m2:/root/.m2  -v /var/run/docker.sock:/var/run/docker.sock'
-                        }
-             }
-
-             steps {
-                 sh 'docker version'
-                 sh 'mvn -version'
-                 sh 'java -version'
-             }
-
-         }
-
+        }
     }
 }
